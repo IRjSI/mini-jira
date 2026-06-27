@@ -8,6 +8,10 @@ const findAllOrganizations = async () => {
     return OrganizationModel.find();
 };
 
+const findOrganizationById = async (id) => {
+    return OrganizationModel.findById(id);
+};
+
 const findOrganizationByOwner = async (owner) => {
     return OrganizationModel.find({ owner });
 };
@@ -29,6 +33,7 @@ const deleteOrganization = async (id) => {
 const organizationRepository = {
     createOrganization,
     findAllOrganizations,
+    findOrganizationById,
     findOrganizationByOwner,
     updateOrganization,
     deleteOrganization,
