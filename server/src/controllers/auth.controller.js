@@ -40,7 +40,29 @@ const login = asyncHandler(async (req, res) => {
     });
 });
 
+const me = asyncHandler(async (req, res) => {
+    const user = await authService.getCurrentUser(req.user._id);
+
+    res.status(200).json({
+        success: true,
+        data: user,
+    });
+});
+
+const logout = asyncHandler(async (req ,res) => {
+    await authService.logout(req.user._id);
+    
+    res.clearCookie("refreshToken", cookieOptions);
+
+    res.status(200).json({
+        success: true,
+        message: "Logout successful",
+    });
+});
+
 export default {
     register,
     login,
+    me,
+    logout,
 };

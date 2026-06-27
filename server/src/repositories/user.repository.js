@@ -35,6 +35,7 @@ const userRepository = {
     findByEmailWithPassword,
     findById,
     createUser,
+    updateRefreshToken,
 };
 
 export default userRepository;

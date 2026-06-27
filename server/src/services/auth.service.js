@@ -41,7 +41,7 @@ const login = async ({ email, password }) => {
         throw new Error("Invalid email or password");
     }
 
-    const { accessToken, refreshToken } = generateTokenPair(user);
+    const { accessToken, refreshToken } = await generateTokenPair(user);
 
     const userResponse = user.toObject();
     delete userResponse.password;
@@ -51,6 +51,19 @@ const login = async ({ email, password }) => {
         accessToken,
         refreshToken,
     };
+};
+
+const getCurrentUser = async (userId) => {
+    const user = await userRepository.findById(userId);
+
+    return user;
+};
+
+const logout = async (userId) => {
+    await userRepository.updateRefreshToken(
+        userId,
+        ""
+    );
 };
 
 const generateTokenPair = async (user) => {
@@ -72,6 +85,8 @@ const generateTokenPair = async (user) => {
 const authService = {
     register,
     login,
+    getCurrentUser,
+    logout,
 }
 
 export default authService;
