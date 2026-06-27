@@ -18,7 +18,7 @@ const createProject = asyncHandler(async (req, res) => {
 });
 
 const getProjects = asyncHandler(async (req, res) => {
-    const projects = await projectService.getProjects();
+    const projects = await projectService.getProjects(req.user._id);
 
     res.status(200).json(
         new ApiResponse(
@@ -42,9 +42,7 @@ const getProject = asyncHandler(async (req, res) => {
 });
 
 const getProjectsByOrganization = asyncHandler(async (req, res) => {
-    const projects = await projectService.getProjectsByOrganization(
-        req.params.organizationId
-    );
+    const projects = await projectService.getProjectsByOrganization(req.params.organizationId);
 
     res.status(200).json(
         new ApiResponse(

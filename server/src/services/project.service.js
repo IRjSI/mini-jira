@@ -1,3 +1,4 @@
+import { isOrganizationOwner } from "../lib/authorizationHelper.js";
 import organizationRepository from "../repositories/organization.repository.js";
 import projectRepository from "../repositories/project.repository.js";
 import ApiError from "../utils/ApiError.js";
@@ -37,22 +38,22 @@ const getProjects = async (userId) => {
     return projects;
 };
 
-const getProject = async (userId, userId, projectId) => {
+const getProject = async (userId, projectId) => {
     const project = await projectRepository.findProjectById(projectId);
 
     if (!project) {
         throw new ApiError(404, "Project not found.");
     }
 
-    const organization = await organizationRepository.findOrganizationById(
-        project.organization
-    );
+    const organization = await organizationRepository.findOrganizationById(project.organization);
 
-    if (
-        organization.owner.toString() !== userId.toString() &&
-        !organization.members.some((member) => member.toString() === userId.toString()) &&
-        project.createdBy.toString() !== userId.toString()
-    ) {
+    if (!organization) {
+        throw new ApiError(404, "Organization not found.");
+    }
+
+    const isAuthorized = isOrganizationOwner(organization, userId);
+
+    if (!isAuthorized) {
         throw new ApiError(403, "Unauthorized.");
     }
 
@@ -66,9 +67,7 @@ const getProjectsByOrganization = async (userId, organizationId) => {
         throw new ApiError(404, "Organization not found.");
     }
 
-    const isAuthorized =
-        organization.owner.toString() === userId.toString() ||
-        organization.members.some((member) => member.toString() === userId.toString());
+    const isAuthorized = isOrganizationOwner(organization, userId);
 
     if (!isAuthorized) {
         throw new ApiError(403, "Unauthorized.");
@@ -86,9 +85,11 @@ const updateProject = async (userId, projectId, updateData) => {
         throw new ApiError(404, "Project not found.");
     }
 
-    const organization = await organizationRepository.findOrganizationById(
-        project.organization
-    );
+    const organization = await organizationRepository.findOrganizationById(project.organization);
+
+    if (!organization) {
+        throw new ApiError(404, "Organization not found.");
+    }
 
     const isAuthorized =
         project.createdBy.toString() === userId.toString() ||
@@ -113,9 +114,11 @@ const deleteProject = async (userId, projectId) => {
         throw new ApiError(404, "Project not found.");
     }
 
-    const organization = await organizationRepository.findOrganizationById(
-        project.organization
-    );
+    const organization = await organizationRepository.findOrganizationById(project.organization);
+
+    if (!organization) {
+        throw new ApiError(404, "Organization not found.");
+    }
 
     const isAuthorized =
         project.createdBy.toString() === userId.toString() ||
