@@ -3,7 +3,7 @@ import env from "../config/env.js";
 const cookieOptions = {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "lax",
 }
 
 export default cookieOptions;

@@ -8,7 +8,12 @@ import cookieParser from "cookie-parser";
 const app = express();
 
 app.use(cookieParser());
-app.use(cors());
+app.use(
+    cors({
+        origin: "https://hoppscotch.io",
+        credentials: true,
+    })
+);  
 app.use(express.json());
 
 // routes
