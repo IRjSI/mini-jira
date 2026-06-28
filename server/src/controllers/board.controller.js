@@ -18,8 +18,8 @@ const createBoard = asyncHandler(async (req, res) => {
     );
 });
 
-const getBoardsByProject = asyncHandler(async (req, res) => {
-    const boards = await boardService.getBoardsByProject(
+const findBoardsByProject = asyncHandler(async (req, res) => {
+    const boards = await boardService.findBoardsByProject(
         req.user._id,
         req.params.projectId
     );
@@ -33,8 +33,8 @@ const getBoardsByProject = asyncHandler(async (req, res) => {
     );
 });
 
-const getBoard = asyncHandler(async (req, res) => {
-    const board = await boardService.getBoard(
+const findBoard = asyncHandler(async (req, res) => {
+    const board = await boardService.findBoard(
         req.user._id,
         req.params.boardId
     );
@@ -65,7 +65,10 @@ const updateBoard = asyncHandler(async (req, res) => {
 });
 
 const deleteBoard = asyncHandler(async (req, res) => {
-    await boardService.deleteBoard(req.user._id, req.params.boardId);
+    await boardService.deleteBoard(
+        req.user._id,
+        req.params.boardId
+    );
 
     res.status(200).json(
         new ApiResponse(
@@ -78,8 +81,8 @@ const deleteBoard = asyncHandler(async (req, res) => {
 
 export default {
     createBoard,
-    getBoardsByProject,
-    getBoard,
+    findBoardsByProject,
+    findBoard,
     updateBoard,
     deleteBoard,
 };

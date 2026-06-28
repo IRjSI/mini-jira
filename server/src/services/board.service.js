@@ -35,7 +35,7 @@ const createBoard = async (userId, projectId, { name, description = "" }) => {
     return board;
 };
 
-const getBoard = async (userId, boardId) => {
+const findBoard = async (userId, boardId) => {
     const board = await boardRepository.findBoardById(boardId);
 
     if (!board) {
@@ -61,7 +61,7 @@ const getBoard = async (userId, boardId) => {
     return board;
 };
 
-const getBoardsByProject = async (userId, projectId) => {
+const findBoardsByProject = async (userId, projectId) => {
     const project = await projectRepository.findProjectById(projectId);
 
     if (!project) {
@@ -153,8 +153,8 @@ const deleteBoard = async (userId, boardId) => {
 
 const boardService = {
     createBoard,
-    getBoard,
-    getBoardsByProject,
+    findBoard,
+    findBoardsByProject,
     updateBoard,
     deleteBoard,
 };
