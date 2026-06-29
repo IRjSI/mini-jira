@@ -20,9 +20,21 @@ const organizationSchema = new mongoose.Schema({
 
     members: [
         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-        },
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+            },
+            
+            role: {
+                type: String,
+                enum:[
+                    "admin",
+                    "member",
+                    "viewer"
+                ],
+                default: "member",
+            },
+        }
     ],
 }, { timestamps: true });
 

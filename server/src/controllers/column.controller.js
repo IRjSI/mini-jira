@@ -1,6 +1,7 @@
 import columnRepository from "../repositories/column.repository.js";
 import columnService from "../services/column.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import ApiResponse from "../utils/ApiResponse.js";
 
 const createColumn = asyncHandler(async (req, res) => {
     const column = await columnService.createColumn(
@@ -36,7 +37,9 @@ const findColumnById = asyncHandler(async (req, res) => {
 const findColumnsByBoard = asyncHandler(async (req, res) => {
     const columns = await columnService.findColumnsByBoard(
         req.user._id,
-        req.params.boardId
+        req.params.boardId,
+        req.query.page,
+        req.query.limit
     );
     
     res.status(200).json(

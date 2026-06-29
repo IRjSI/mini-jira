@@ -18,7 +18,7 @@ const createOrganization = asyncHandler(async (req, res) => {
 });
 
 const getOrganizations = asyncHandler(async (req, res) => {
-    const organizations = await organizationService.getOrganizations();
+    const organizations = await organizationService.getOrganizations(req.query.page, req.query.limit);
 
     res.status(200).json(
         new ApiResponse(

@@ -21,7 +21,9 @@ const createBoard = asyncHandler(async (req, res) => {
 const findBoardsByProject = asyncHandler(async (req, res) => {
     const boards = await boardService.findBoardsByProject(
         req.user._id,
-        req.params.projectId
+        req.params.projectId,
+        req.query.page,
+        req.query.limit
     );
 
     res.status(200).json(

@@ -61,7 +61,7 @@ const findBoard = async (userId, boardId) => {
     return board;
 };
 
-const findBoardsByProject = async (userId, projectId) => {
+const findBoardsByProject = async (userId, projectId, page, limit) => {
     const project = await projectRepository.findProjectById(projectId);
 
     if (!project) {
@@ -78,7 +78,7 @@ const findBoardsByProject = async (userId, projectId) => {
         throw new ApiError(403, "Unauthorized.");
     }
 
-    const boards = await boardRepository.findBoardsByProject(projectId);
+    const boards = await boardRepository.findBoardsByProject(projectId, page, limit);
 
     return boards;
 };

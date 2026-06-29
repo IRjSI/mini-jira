@@ -18,7 +18,7 @@ const createProject = asyncHandler(async (req, res) => {
 });
 
 const getProjects = asyncHandler(async (req, res) => {
-    const projects = await projectService.getProjects(req.user._id);
+    const projects = await projectService.getProjects(req.user._id, req.query.page, req.query.limit);
 
     res.status(200).json(
         new ApiResponse(
@@ -30,7 +30,7 @@ const getProjects = asyncHandler(async (req, res) => {
 });
 
 const getProject = asyncHandler(async (req, res) => {
-    const project = await projectService.getProject(req.params.id);
+    const project = await projectService.getProject(req.user._id, req.params.id);
 
     res.status(200).json(
         new ApiResponse(
@@ -42,7 +42,7 @@ const getProject = asyncHandler(async (req, res) => {
 });
 
 const getProjectsByOrganization = asyncHandler(async (req, res) => {
-    const projects = await projectService.getProjectsByOrganization(req.params.organizationId);
+    const projects = await projectService.getProjectsByOrganization(req.user._id, req.params.organizationId, req.query.page, req.query.limit);
 
     res.status(200).json(
         new ApiResponse(
@@ -55,6 +55,7 @@ const getProjectsByOrganization = asyncHandler(async (req, res) => {
 
 const updateProject = asyncHandler(async (req, res) => {
     const project = await projectService.updateProject(
+        req.user._id,
         req.params.id,
         req.body
     );
@@ -69,7 +70,7 @@ const updateProject = asyncHandler(async (req, res) => {
 });
 
 const deleteProject = asyncHandler(async (req, res) => {
-    await projectService.deleteProject(req.params.id);
+    await projectService.deleteProject(req.user._id, req.params.id);
 
     res.status(200).json(
         new ApiResponse(

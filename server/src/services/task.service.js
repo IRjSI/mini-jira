@@ -7,17 +7,7 @@ import projectRepository from "../repositories/project.repository.js";
 import taskRepository from "../repositories/task.repository.js";
 import ApiError from "../utils/ApiError.js";
 
-const createTask = async (userId, columnId, { title, description = "", priority = "medium" }) => {
-    if (!title?.trim()) {
-        throw new ApiError(400, "Task title is required.");
-    }
-
-    const allowedPriorities = TASK_PRIORITIES;
-
-    if (!allowedPriorities.includes(priority)) {
-        throw new ApiError(400, "Invalid priority.");
-    }
-
+const getColumnContext = async (userId, columnId) => {
     const column = await columnRepository.findColumnById(columnId);
 
     if (!column) {
@@ -42,9 +32,35 @@ const createTask = async (userId, columnId, { title, description = "", priority 
         throw new ApiError(404, "Organization not found.");
     }
 
-    if (!canManageProject(project, organization, userId)) {
+    if (!canManageProject(organization, userId)) {
         throw new ApiError(403, "Unauthorized.");
     }
+
+    return { column, board, project, organization };
+};
+
+const getTaskContext = async (userId, taskId) => {
+    const task = await taskRepository.findTaskById(taskId);
+
+    if (!task) {
+        throw new ApiError(404, "Task not found.");
+    }
+
+    const columnContext = await getColumnContext(userId, task.column);
+
+    return { task, ...columnContext };
+};
+
+const createTask = async (userId, columnId, { title, description = "", priority = "medium" }) => {
+    if (!title?.trim()) {
+        throw new ApiError(400, "Task title is required.");
+    }
+
+    if (!TASK_PRIORITIES.includes(priority)) {
+        throw new ApiError(400, "Invalid priority.");
+    }
+
+    await getColumnContext(userId, columnId);
 
     const tasks = await taskRepository.findTasksByColumn(columnId);
     const order = tasks.length;
@@ -62,161 +78,74 @@ const createTask = async (userId, columnId, { title, description = "", priority 
 };
 
 const findTaskById = async (userId, taskId) => {
-    const task = await taskRepository.findTaskById(taskId);
-
-    if (!task) {
-        throw new ApiError(404, "Task not found.");
-    }
-
-    const column = await columnRepository.findColumnById(task.column);
-
-    if (!column) {
-        throw new ApiError(404, "Column not found.");
-    }
-
-    const board = await boardRepository.findBoardById(column.board);
-
-    if (!board) {
-        throw new ApiError(404, "Board not found.");
-    }
-
-    const project = await projectRepository.findProjectById(board.project);
-
-    if (!project) {
-        throw new ApiError(404, "Project not found.");
-    }
-
-    const organization = await organizationRepository.findOrganizationById(project.organization);
-
-    if (!organization) {
-        throw new ApiError(404, "Organization not found.");
-    }
-
-    if (!canManageProject(project, organization, userId)) {
-        throw new ApiError(403, "Unauthorized.");
-    }
+    const { task } = await getTaskContext(userId, taskId);
 
     return task;
 };
 
-const findTasksByColumn = async (userId, columnId) => {
-    const column = await columnRepository.findColumnById(columnId);
+const findTasksByColumn = async (userId, columnId, page, limit) => {
+    await getColumnContext(userId, columnId);
 
-    if (!column) {
-        throw new ApiError(404, "Column not found.");
+    return taskRepository.findTasksByColumn(columnId, page, limit);
+};
+
+const moveTask = async (userId, taskId, targetColumnId) => {
+    const { task, column } = await getTaskContext(userId, taskId);
+
+    const targetColumn = await columnRepository.findColumnById(targetColumnId);
+
+    if (!targetColumn) {
+        throw new ApiError(
+            404,
+            "Target column not found."
+        );
     }
 
-    const board = await boardRepository.findBoardById(column.board);
+    const targetTasks = await taskRepository.findTasksByColumn(targetColumnId);
 
-    if (!board) {
-        throw new ApiError(404, "Board not found.");
-    }
+    await taskRepository.updateTask(
+        taskId,
+        {
+            column: targetColumnId,
+            order: targetTasks.length,
+        }
+    );
 
-    const project = await projectRepository.findProjectById(board.project);
-
-    if (!project) {
-        throw new ApiError(404, "Project not found.");
-    }
-
-    const organization = await organizationRepository.findOrganizationById(project.organization);
-
-    if (!organization) {
-        throw new ApiError(404, "Organization not found.");
-    }
-
-    if (!canManageProject(project, organization, userId)) {
-        throw new ApiError(403, "Unauthorized.");
-    }
-
-    const tasks = await taskRepository.findTasksByColumn(columnId);
-
-    return tasks;
+    return taskRepository.findTaskById(taskId);
 };
 
 const updateTask = async (userId, taskId, updateData) => {
-    const task = await taskRepository.findTaskById(taskId);
-
-    if (!task) {
-        throw new ApiError(404, "Task not found.");
-    }
-
-    const column = await columnRepository.findColumnById(task.column);
-
-    if (!column) {
-        throw new ApiError(404, "Column not found.");
-    }
-
-    const board = await boardRepository.findBoardById(column.board);
-
-    if (!board) {
-        throw new ApiError(404, "Board not found.");
-    }
-
-    const project = await projectRepository.findProjectById(board.project);
-
-    if (!project) {
-        throw new ApiError(404, "Project not found.");
-    }
-
-    const organization = await organizationRepository.findOrganizationById(project.organization);
-
-    if (!organization) {
-        throw new ApiError(404, "Organization not found.");
-    }
-
-    if (!canManageProject(project, organization, userId)) {
-        throw new ApiError(403, "Unauthorized.");
-    }
+    const { task } = await getTaskContext(userId, taskId);
 
     if (updateData.title !== undefined && !updateData.title?.trim()) {
         throw new ApiError(400, "Task title is required.");
     }
 
-    if (updateData.priority !== undefined) {
-        if (!TASK_PRIORITIES.includes(updateData.priority)) {
-            throw new ApiError(400, "Invalid priority.");
-        }
+    if (updateData.priority !== undefined && !TASK_PRIORITIES.includes(updateData.priority)) {
+        throw new ApiError(400, "Invalid priority.");
     }
 
-    const updatedTask = await taskRepository.updateTask(taskId, updateData);
+    const allowedUpdates = {};
+
+    if (updateData.title !== undefined) {
+        allowedUpdates.title = updateData.title;
+    }
+
+    if (updateData.description !== undefined) {
+        allowedUpdates.description = updateData.description;
+    }
+
+    if (updateData.priority !== undefined) {
+        allowedUpdates.priority = updateData.priority;
+    }
+
+    const updatedTask = await taskRepository.updateTask(taskId, allowedUpdates);
 
     return updatedTask;
 };
 
 const deleteTask = async (userId, taskId) => {
-    const task = await taskRepository.findTaskById(taskId);
-
-    if (!task) {
-        throw new ApiError(404, "Task not found.");
-    }
-
-    const column = await columnRepository.findColumnById(task.column);
-
-    if (!column) {
-        throw new ApiError(404, "Column not found.");
-    }
-
-    const board = await boardRepository.findBoardById(column.board);
-
-    if (!board) {
-        throw new ApiError(404, "Board not found.");
-    }
-
-    const project = await projectRepository.findProjectById(board.project);
-
-    if (!project) {
-        throw new ApiError(404, "Project not found.");
-    }
-
-    const organization = await organizationRepository.findOrganizationById(project.organization);
-
-    if (!organization) {
-        throw new ApiError(404, "Organization not found.");
-    }
-
-    if (!canManageProject(project, organization, userId)) {
-        throw new ApiError(403, "Unauthorized.");
-    }
+    await getTaskContext(userId, taskId);
 
     const deletedTask = await taskRepository.deleteTask(taskId);
 
@@ -227,6 +156,7 @@ const taskService = {
     createTask,
     findTaskById,
     findTasksByColumn,
+    moveTask,
     updateTask,
     deleteTask,
 };

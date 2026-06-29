@@ -28,7 +28,7 @@ const createColumn = async (userId, boardId, { name }) => {
         throw new ApiError(404, "Organization not found.");
     }
 
-    if (!canManageProject(project, organization, userId)) {
+    if (!canManageProject(organization, userId)) {
         throw new ApiError(403, "Unauthorized.");
     }
 
@@ -71,14 +71,14 @@ const findColumnById = async (userId, columnId) => {
         throw new ApiError(404, "Organization not found.");
     }
 
-    if (!canManageProject(project, organization, userId)) {
+    if (!canManageProject(organization, userId)) {
         throw new ApiError(403, "Unauthorized.");
     }
 
     return column;
 };
 
-const findColumnsByBoard = async (userId, boardId) => {
+const findColumnsByBoard = async (userId, boardId, page, limit) => {
     const board = await boardRepository.findBoardById(boardId);
 
     if (!board) {
@@ -97,7 +97,7 @@ const findColumnsByBoard = async (userId, boardId) => {
         throw new ApiError(404, "Organization not found.");
     }
 
-    if (!canManageProject(project, organization, userId)) {
+    if (!canManageProject(organization, userId)) {
         throw new ApiError(403, "Unauthorized.");
     }
 
@@ -131,7 +131,7 @@ const updateColumn = async (userId, columnId, updateData) => {
         throw new ApiError(404, "Organization not found.");
     }
 
-    if (!canManageProject(project, organization, userId)) {
+    if (!canManageProject(organization, userId)) {
         throw new ApiError(403, "Unauthorized.");
     }
 
@@ -175,7 +175,7 @@ const deleteColumn = async (userId, columnId) => {
         throw new ApiError(404, "Organization not found.");
     }
 
-    if (!canManageProject(project, organization, userId)) {
+    if (!canManageProject(organization, userId)) {
         throw new ApiError(403, "Unauthorized.");
     }
 

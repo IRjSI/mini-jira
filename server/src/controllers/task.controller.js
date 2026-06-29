@@ -23,10 +23,18 @@ const findTaskById = asyncHandler(async (req, res) => {
 });
 
 const findTasksByColumn = asyncHandler(async (req, res) => {
-    const tasks = await taskService.findTasksByColumn(req.user._id, req.params.columnId);
+    const tasks = await taskService.findTasksByColumn(req.user._id, req.params.columnId, req.query.page, req.query.limit);
 
     res.status(200).json(
         new ApiResponse(200, "Tasks fetched successfully.", tasks)
+    );
+});
+
+const moveTask = asyncHandler(async (req, res) => {
+    const task = await taskService.moveTask(req.user._id, req.params.taskId, req.body);
+    
+    res.status(200).json(
+        new ApiResponse(200, "Tasks moved successfully.", task)
     );
 });
 
@@ -50,6 +58,7 @@ export default {
     createTask,
     findTaskById,
     findTasksByColumn,
+    moveTask,
     updateTask,
     deleteTask,
 };

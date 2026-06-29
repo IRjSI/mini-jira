@@ -16,8 +16,8 @@ const createOrganization = async (userId, { name, description = "" }) => {
     return org;
 };
 
-const getOrganizations = async () => {
-    const organizations = await organizationRepository.findAllOrganizations();
+const getOrganizations = async (page, limit) => {
+    const organizations = await organizationRepository.findAllOrganizations(page, limit);
 
     return organizations;
 };

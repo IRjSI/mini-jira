@@ -32,8 +32,8 @@ const createProject = async (userId, { name, description = "", organizationId })
     return project;
 };
 
-const getProjects = async (userId) => {
-    const projects = await projectRepository.findProjectsByCreator(userId);
+const getProjects = async (userId, page, limit) => {
+    const projects = await projectRepository.findProjectsByCreator(userId, page, limit);
 
     return projects;
 };
@@ -60,7 +60,7 @@ const getProject = async (userId, projectId) => {
     return project;
 };
 
-const getProjectsByOrganization = async (userId, organizationId) => {
+const getProjectsByOrganization = async (userId, organizationId, page, limit) => {
     const organization = await organizationRepository.findOrganizationById(organizationId);
 
     if (!organization) {
@@ -73,7 +73,7 @@ const getProjectsByOrganization = async (userId, organizationId) => {
         throw new ApiError(403, "Unauthorized.");
     }
 
-    const projects = await projectRepository.findProjectsByOrganization(organizationId);
+    const projects = await projectRepository.findProjectsByOrganization(organizationId, page, limit);
 
     return projects;
 };
