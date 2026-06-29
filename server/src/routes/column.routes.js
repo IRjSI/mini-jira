@@ -7,13 +7,9 @@ const router = Router();
 router.use(authenticate);
 
 router.post("/boards/:boardId/columns", columnController.createColumn);
-
-router.get("/boards/:boardId/columns", columnController.getColumnsByBoard);
-
-router.get("/columns/:columnId", columnController.getColumn);
-
+router.get("/boards/:boardId/columns", columnController.findColumnsByBoard);
+router.get("/columns/:columnId", columnController.findColumnById);
 router.patch("/columns/:columnId", columnController.updateColumn);
-
 router.delete("/columns/:columnId", columnController.deleteColumn);
 
 export default router;
