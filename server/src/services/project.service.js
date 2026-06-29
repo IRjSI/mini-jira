@@ -32,10 +32,21 @@ const createProject = async (userId, { name, description = "", organizationId })
     return project;
 };
 
-const getProjects = async (userId, page, limit) => {
-    const projects = await projectRepository.findProjectsByCreator(userId, page, limit);
+const getProjects = async (userId, page, limit, organization) => {
+    const normalizedPage = Number.isFinite(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+    const normalizedLimit = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : 10;
 
-    return projects;
+    const filter = {
+        createdBy: userId
+    };
+
+    if (organization) {
+        filter.organization = organization
+    }
+
+    const projects = await projectRepository.findProjectsByCreator(filter);
+
+    return projects.slice((normalizedPage - 1) * normalizedLimit, normalizedPage * normalizedLimit);
 };
 
 const getProject = async (userId, projectId) => {
@@ -73,9 +84,12 @@ const getProjectsByOrganization = async (userId, organizationId, page, limit) =>
         throw new ApiError(403, "Unauthorized.");
     }
 
-    const projects = await projectRepository.findProjectsByOrganization(organizationId, page, limit);
+    const normalizedPage = Number.isFinite(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+    const normalizedLimit = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : 10;
 
-    return projects;
+    const projects = await projectRepository.findProjectsByOrganization(organizationId);
+
+    return projects.slice((normalizedPage - 1) * normalizedLimit, normalizedPage * normalizedLimit);
 };
 
 const updateProject = async (userId, projectId, updateData) => {

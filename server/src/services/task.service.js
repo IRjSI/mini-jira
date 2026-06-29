@@ -86,7 +86,12 @@ const findTaskById = async (userId, taskId) => {
 const findTasksByColumn = async (userId, columnId, page, limit) => {
     await getColumnContext(userId, columnId);
 
-    return taskRepository.findTasksByColumn(columnId, page, limit);
+    const normalizedPage = Number.isFinite(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+    const normalizedLimit = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : 10;
+
+    const tasks = await taskRepository.findTasksByColumn(columnId);
+
+    return tasks.slice((normalizedPage - 1) * normalizedLimit, normalizedPage * normalizedLimit);
 };
 
 const moveTask = async (userId, taskId, targetColumnId) => {

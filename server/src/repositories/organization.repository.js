@@ -4,30 +4,16 @@ const createOrganization = async (organizationData) => {
     return OrganizationModel.create(organizationData);
 };
 
-const findAllOrganizations = async (page = 1, limit = 10) => {
-    const normalizedPage = Number.isFinite(Number(page)) && Number(page) > 0 ? Number(page) : 1;
-    const normalizedLimit = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : 10;
-
-    return OrganizationModel
-        .find()
-        .skip((normalizedPage - 1) * normalizedLimit)
-        .limit(normalizedLimit)
-        .sort({ createdAt: -1 });
+const findAllOrganizations = async (filter = {}) => {
+    return OrganizationModel.find(filter).sort({ createdAt: -1 });
 };
 
 const findOrganizationById = async (id) => {
     return OrganizationModel.findById(id);
 };
 
-const findOrganizationByOwner = async (owner, page = 1, limit = 10) => {
-    const normalizedPage = Number.isFinite(Number(page)) && Number(page) > 0 ? Number(page) : 1;
-    const normalizedLimit = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : 10;
-
-    return OrganizationModel
-        .find({ owner })
-        .skip((normalizedPage - 1) * normalizedLimit)
-        .limit(normalizedLimit)
-        .sort({ createdAt: -1 });
+const findOrganizationByOwner = async (owner) => {
+    return OrganizationModel.find({ owner }).sort({ createdAt: -1 });
 };
 
 const updateOrganization = async (id, updateData) => {

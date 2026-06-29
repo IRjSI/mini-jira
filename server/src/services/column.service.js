@@ -101,9 +101,12 @@ const findColumnsByBoard = async (userId, boardId, page, limit) => {
         throw new ApiError(403, "Unauthorized.");
     }
 
+    const normalizedPage = Number.isFinite(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+    const normalizedLimit = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : 10;
+
     const columns = await columnRepository.findColumnsByBoard(boardId);
 
-    return columns;
+    return columns.slice((normalizedPage - 1) * normalizedLimit, normalizedPage * normalizedLimit);
 };
 
 const updateColumn = async (userId, columnId, updateData) => {

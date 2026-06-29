@@ -17,9 +17,12 @@ const createOrganization = async (userId, { name, description = "" }) => {
 };
 
 const getOrganizations = async (page, limit) => {
-    const organizations = await organizationRepository.findAllOrganizations(page, limit);
+    const normalizedPage = Number.isFinite(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+    const normalizedLimit = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : 10;
 
-    return organizations;
+    const organizations = await organizationRepository.findAllOrganizations();
+
+    return organizations.slice((normalizedPage - 1) * normalizedLimit, normalizedPage * normalizedLimit);
 };
 
 const getOrganization = async (organizationId) => {

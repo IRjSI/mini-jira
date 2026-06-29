@@ -78,9 +78,12 @@ const findBoardsByProject = async (userId, projectId, page, limit) => {
         throw new ApiError(403, "Unauthorized.");
     }
 
-    const boards = await boardRepository.findBoardsByProject(projectId, page, limit);
+    const normalizedPage = Number.isFinite(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+    const normalizedLimit = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : 10;
 
-    return boards;
+    const boards = await boardRepository.findBoardsByProject(projectId);
+
+    return boards.slice((normalizedPage - 1) * normalizedLimit, normalizedPage * normalizedLimit);
 };
 
 const updateBoard = async (userId, boardId, updateData) => {
