@@ -10,7 +10,7 @@ const app = express();
 app.use(cookieParser());
 app.use(
     cors({
-        origin: "https://hoppscotch.io",
+        origin: ["https://hoppscotch.io", "http://localhost:5173"],
         credentials: true,
     })
 );  
