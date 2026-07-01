@@ -11,5 +11,6 @@ router.get("/", organizationController.getOrganizations);
 router.get("/:id", organizationController.getOrganization);
 router.patch("/:id", organizationController.updateOrganization);
 router.delete("/:id", organizationController.deleteOrganization);
+router.post("/:id/bootstrap", organizationController.bootstrapOrganization);
 
 export default router;

@@ -4,7 +4,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -20,5 +21,10 @@
     "mongoose": "^9.7.2",
     "nodemon": "^3.1.14",
     "validator": "^13.15.35"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^10.4.3",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.9"
   }
 }

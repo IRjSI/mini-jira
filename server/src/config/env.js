@@ -5,11 +5,11 @@ dotenv.config();
 const env = {
     PORT: process.env.PORT || 5000,
     MONGODB_URI: process.env.MONGODB_URI,
-    JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
-    JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
-    JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN,
-    JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN,
-    NODE_ENV: process.env.NODE_ENV,
+    JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || "test-access-secret",
+    JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || "test-refresh-secret",
+    JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || "1d",
+    JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
+    NODE_ENV: process.env.NODE_ENV || "test",
 };
 
 export default env;

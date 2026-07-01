@@ -70,10 +70,26 @@ const deleteOrganization = asyncHandler(async (req, res) => {
     );
 });
 
+const bootstrapOrganization = asyncHandler(async (req, res) => {
+    const bootstrapResult = await organizationService.bootstrapOrganization(
+        req.user._id,
+        req.params.id
+    );
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            "Organization bootstrapped successfully.",
+            bootstrapResult
+        )
+    );
+});
+
 export default {
     createOrganization,
     getOrganizations,
     getOrganization,
     updateOrganization,
     deleteOrganization,
+    bootstrapOrganization,
 };

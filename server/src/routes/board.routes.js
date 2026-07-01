@@ -7,8 +7,8 @@ const router = Router();
 router.use(authenticate);
 
 router.post("/projects/:projectId/boards", boardController.createBoard);
-router.get("/projects/:projectId/boards", boardController.getBoardsByProject);
-router.get("/boards/:boardId", boardController.getBoard);
+router.get("/projects/:projectId/boards", boardController.findBoardsByProject);
+router.get("/boards/:boardId", boardController.findBoard);
 router.patch("/boards/:boardId", boardController.updateBoard);
 router.delete("/boards/:boardId", boardController.deleteBoard);
 

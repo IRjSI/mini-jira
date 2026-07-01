@@ -94,8 +94,21 @@ const findTasksByColumn = async (userId, columnId, page, limit) => {
     return tasks.slice((normalizedPage - 1) * normalizedLimit, normalizedPage * normalizedLimit);
 };
 
-const moveTask = async (userId, taskId, targetColumnId) => {
+const moveTask = async (userId, taskId, targetColumnIdOrBody) => {
     const { task, column } = await getTaskContext(userId, taskId);
+
+    // Support either a raw id string or an object body like { columnId: "..." } or { targetColumnId: "..." }
+    let targetColumnId = undefined;
+
+    if (typeof targetColumnIdOrBody === "string") {
+        targetColumnId = targetColumnIdOrBody;
+    } else if (targetColumnIdOrBody && typeof targetColumnIdOrBody === "object") {
+        targetColumnId = targetColumnIdOrBody.columnId || targetColumnIdOrBody.targetColumnId || targetColumnIdOrBody.target;
+    }
+
+    if (!targetColumnId) {
+        throw new ApiError(400, "Target column id is required.");
+    }
 
     const targetColumn = await columnRepository.findColumnById(targetColumnId);
 
