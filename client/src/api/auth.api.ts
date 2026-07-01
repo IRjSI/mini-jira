@@ -23,10 +23,10 @@ export const loginUser = async (data: LoginData) => {
     return response.data;
 };
 
-export const getCurrentUser = async (token: string) => {
+export const getCurrentUser = async (accessToken: string) => {
     const response = await api.get("/auth/me", {
         headers: {
-            "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${accessToken}`
         }
     });
 
