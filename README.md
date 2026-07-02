@@ -432,15 +432,15 @@ Tests validate complete request-response cycles against the API.
 
 ### Dashboard
 
-> Screenshot coming soon
+> ![Dashboard](image.png)
 
 ### Organizations
 
-> Screenshot coming soon
+> ![Organizations](image-1.png)
 
 ### Projects
 
-> Screenshot coming soon
+> ![Projects](image-2.png)
 
 ---
 
