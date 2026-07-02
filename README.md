@@ -1,6 +1,6 @@
 # Collaborative Project Management Platform
 
-A backend service for a collaborative project management platform inspired by tools like Jira, Trello, and Linear. The application is built using a layered architecture with authentication, organization management, and project management modules.
+A full-stack collaborative project management platform inspired by tools like Jira, Trello, and Linear. The application is being built using a layered backend architecture and a feature-oriented frontend architecture, with authentication, organization management, and project management modules already implemented.
 
 ## Features
 
@@ -13,6 +13,8 @@ A backend service for a collaborative project management platform inspired by to
 * Logout functionality
 * Protected routes using authentication middleware
 * Ownership-based authorization for resources
+* Persistent login sessions
+* Session restoration on application startup
 
 ### Organization Management
 
@@ -38,6 +40,16 @@ A backend service for a collaborative project management platform inspired by to
 
 ## Tech Stack
 
+### Frontend
+
+* React
+* TypeScript
+* React Router
+* Redux Toolkit
+* Axios
+* Tailwind CSS
+* Vite
+
 ### Backend
 
 * Node.js
@@ -59,10 +71,11 @@ A backend service for a collaborative project management platform inspired by to
 * Controller-Service-Repository Pattern
 * REST API Design
 * Layered Application Architecture
+* Feature-Oriented Frontend Architecture
 
 ---
 
-## Project Structure
+## Backend Project Structure
 
 ```text
 src
@@ -115,9 +128,54 @@ src
 
 ---
 
-## Architecture
+## Frontend Architecture
 
-The application follows a layered architecture:
+```text
+src
+├── api
+├── app
+├── components
+├── features
+│   ├── auth
+│   ├── organization
+│   └── project
+├── hooks
+├── pages
+├── routes
+└── types
+```
+
+### State Management
+
+Authentication state is managed globally using Redux Toolkit.
+
+```text
+Redux Store
+    ↓
+Slices
+    ↓
+Components
+```
+
+### API Layer
+
+```text
+Component
+    ↓
+API Layer
+    ↓
+Axios
+    ↓
+Backend API
+```
+
+Axios interceptors automatically attach access tokens to authenticated requests.
+
+---
+
+## Backend Architecture
+
+The backend follows a layered architecture:
 
 ```text
 Route
@@ -169,6 +227,40 @@ Responsible for:
 
 ---
 
+## Authentication Flow
+
+### Login
+
+```text
+User Login
+    ↓
+Backend validates credentials
+    ↓
+Access Token returned
+    ↓
+Refresh Token stored in HTTP-only Cookie
+    ↓
+Redux Store updated
+```
+
+### Session Restoration
+
+```text
+Application Start
+    ↓
+Refresh Endpoint
+    ↓
+New Access Token
+    ↓
+Get Current User
+    ↓
+Redux Store Restored
+```
+
+This approach allows persistent login sessions without storing refresh tokens in local storage.
+
+---
+
 ## Data Model
 
 ### User
@@ -206,12 +298,14 @@ Project
 
 ## Resource Hierarchy
 
+### Current
+
 ```text
 Organization
     └── Project
 ```
 
-Planned hierarchy:
+### Planned
 
 ```text
 Organization
@@ -220,6 +314,20 @@ Organization
                     └── Column
                             └── Task
 ```
+
+---
+
+## Authorization Model
+
+```text
+User
+ └── Organization
+      └── Project
+```
+
+Users can only access resources they own or are authorized to interact with.
+
+Authorization checks are performed in the service layer before database operations are executed.
 
 ---
 
@@ -257,6 +365,27 @@ DELETE  /api/v1/projects/:id
 
 ---
 
+## Testing
+
+The backend includes integration tests covering core application workflows.
+
+### Covered Areas
+
+* Authentication
+* Organization management
+* Project management
+* Protected routes
+* Authorization checks
+
+### Tools
+
+* Vitest
+* Supertest
+
+Tests validate complete request-response cycles against the API.
+
+---
+
 ## Security
 
 * Password hashing using bcrypt
@@ -266,6 +395,52 @@ DELETE  /api/v1/projects/:id
 * Protected routes
 * Resource ownership checks
 * Centralized error handling
+
+---
+
+## Current Status
+
+### Completed
+
+- Authentication
+- Authorization
+- Organizations
+- Projects
+- Frontend Dashboard
+- Protected Routes
+- Session Persistence
+- Redux State Management
+- Integration Testing
+
+### In Progress
+
+- Boards
+
+### Planned
+
+- Columns
+- Tasks
+- Drag and Drop
+- Real-time Collaboration
+- Dockerization
+- CI/CD
+- AWS Deployment
+
+---
+
+## Screenshots
+
+### Dashboard
+
+> Screenshot coming soon
+
+### Organizations
+
+> Screenshot coming soon
+
+### Projects
+
+> Screenshot coming soon
 
 ---
 
@@ -312,9 +487,12 @@ DELETE  /api/v1/projects/:id
 This project is being built to gain practical experience with:
 
 * Backend architecture
+* Frontend architecture
 * Authentication and authorization
 * REST API design
 * MongoDB data modeling
 * Multi-tenant application design
 * Scalable code organization
 * Production-oriented development practices
+* State management with Redux Toolkit
+* Full-stack application development
