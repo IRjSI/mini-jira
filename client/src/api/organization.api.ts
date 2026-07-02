@@ -1,6 +1,6 @@
 import { api } from "./axios";
 
-interface CreateOrganizationRequest {
+export interface CreateOrganizationRequest {
     name: string;
     description: string;
 }
