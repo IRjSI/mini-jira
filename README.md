@@ -406,6 +406,10 @@ Tests validate complete request-response cycles against the API.
 - Authorization
 - Organizations
 - Projects
+- Boards
+- Columns
+- Tasks
+- Drag and Drop
 - Frontend Dashboard
 - Protected Routes
 - Session Persistence
@@ -414,14 +418,10 @@ Tests validate complete request-response cycles against the API.
 
 ### In Progress
 
-- Boards
+- Real-time Collaboration
 
 ### Planned
 
-- Columns
-- Tasks
-- Drag and Drop
-- Real-time Collaboration
 - Dockerization
 - CI/CD
 - AWS Deployment
