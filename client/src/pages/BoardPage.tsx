@@ -9,8 +9,9 @@ import type { Column } from "../features/column/columnType";
 import { ClockIcon, PlusIcon, TrashIcon, UserIcon, XIcon } from "lucide-react";
 import { useAppSelector } from "../hooks/redux";
 import Breadcrumbs from "../components/Breadcrumbs";
-import { getTasksByColumn, createTask, deleteTask, type CreateTaskRequest } from "../api/task.api";
+import { getTasksByColumn, createTask, deleteTask, type CreateTaskRequest, moveTask } from "../api/task.api";
 import type { Task } from "../features/task/taskType";
+import { Draggable, Droppable } from "react-drag-and-drop";
 
 function BoardPage() {
     const user = useAppSelector((state) => state.auth.user);
@@ -141,6 +142,27 @@ function BoardPage() {
         }
     };
 
+    const handleTaskMove = async (data: Task, column: Column) => {
+        const previousTasks = tasks;
+
+        try {
+            if (data.column === column._id) {
+                return;
+            }
+            const taskId = data._id;
+            if (!taskId) return;
+            setTasks(prevTasks =>
+                prevTasks.map(t =>
+                    t._id === taskId ? { ...t, column: column._id } : t
+                )
+            );
+
+            await moveTask(taskId, column._id);
+        } catch (error) {
+            setTasks(previousTasks);
+        }
+    }
+
     if (isLoading) {
         return <div className="p-8 text-center text-slate-500 font-medium">Loading board details...</div>;
     }
@@ -223,33 +245,58 @@ function BoardPage() {
                             </div>
 
                             <div className="flex-1 p-2 overflow-y-auto flex flex-col gap-2 relative">
-                                {tasks.filter(t => t.column === column._id).length === 0 ? (
-                                    <div className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider text-center mt-6">
-                                        No tasks yet
-                                    </div>
-                                ) : (
-                                    tasks.filter(t => t.column === column._id).map((task) => (
-                                        <div key={task._id} className="group relative rounded border border-slate-200 bg-white p-3 shadow-sm hover:shadow hover:border-slate-300 transition flex flex-col gap-2">
-                                            <div className="flex items-start justify-between gap-2">
-                                                <h4 className="text-sm font-semibold text-slate-900 leading-tight">
-                                                    {(task as any).title || task.name}
-                                                </h4>
-                                                <button
-                                                    onClick={() => handleDeleteTask(task._id, (task as any).title || task.name)}
-                                                    className="text-slate-300 hover:text-red-600 transition p-1 shrink-0 bg-slate-50 rounded"
-                                                    title="Delete Task"
-                                                >
-                                                    <TrashIcon size={12} />
-                                                </button>
-                                            </div>
-                                            {(task as any).description && (
-                                                <p className="text-xs text-slate-600 line-clamp-2">
-                                                    {(task as any).description}
-                                                </p>
-                                            )}
+                                <Droppable
+                                    types={["task"]}
+                                    data={column}
+                                    onDrop={(data: any) => {
+                                        if (data.task) {
+                                            try {
+                                                const droppedTask = JSON.parse(data.task);
+                                                handleTaskMove(droppedTask, column);
+                                            } catch (e) {
+                                                console.error(e);
+                                            }
+                                        }
+                                    }}
+                                >
+                                    {tasks.filter(t => t.column === column._id).length === 0 ? (
+                                        <div className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider text-center mt-6">
+                                            No tasks yet
                                         </div>
-                                    ))
-                                )}
+                                    ) : (
+                                        tasks.filter(t => t.column === column._id).map((task) => (
+                                            <div key={task._id}>
+                                                <Draggable
+                                                    key={task._id}
+                                                    type="task"
+                                                    data={JSON.stringify(task)}
+                                                >
+
+
+                                                    <div className="group relative rounded border border-slate-200 bg-white p-3 shadow-sm hover:shadow hover:border-slate-300 transition flex flex-col gap-2">
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <h4 className="text-sm font-semibold text-slate-900 leading-tight">
+                                                                {task.name}
+                                                            </h4>
+                                                            <button
+                                                                onClick={() => handleDeleteTask(task._id, (task as any).title || task.name)}
+                                                                className="text-slate-300 hover:text-red-600 transition p-1 shrink-0 bg-slate-50 rounded"
+                                                                title="Delete Task"
+                                                            >
+                                                                <TrashIcon size={12} />
+                                                            </button>
+                                                        </div>
+                                                        {(task as any).description && (
+                                                            <p className="text-xs text-slate-600 line-clamp-2">
+                                                                {(task as any).description}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </Draggable>
+                                            </div>
+                                        ))
+                                    )}
+                                </Droppable>
                             </div>
                             <div className="border-t border-slate-200 bg-slate-50 p-2">
                                 <button
@@ -271,101 +318,105 @@ function BoardPage() {
                         <span className="text-sm font-semibold">Add another column</span>
                     </button>
                 </div>
-            </section>
+            </section >
 
             {/* CREATE COLUMN MODAL */}
-            {createColumnOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-3 py-4" role="presentation">
-                    <div className="w-full max-w-sm border border-slate-300 bg-white p-5 shadow-lg" role="dialog" aria-modal="true" aria-labelledby="create-column-title">
-                        <div className="mb-4 flex items-start justify-between gap-3 border-b border-slate-200 pb-2">
-                            <div>
-                                <h2 id="create-column-title" className="text-lg font-semibold tracking-tight text-slate-900">Add Column</h2>
-                            </div>
-                            <button
-                                type="button"
-                                className="text-slate-400 transition hover:text-slate-900"
-                                onClick={() => setCreateColumnOpen(false)}
-                            >
-                                <XIcon size={18} />
-                            </button>
-                        </div>
-                        <form className="flex flex-col gap-4" onSubmit={handleCreateColumn}>
-                            <label className="flex flex-col gap-1.5 text-left text-sm text-slate-700">
-                                <span className="font-semibold text-xs">Name</span>
-                                <input
-                                    className="w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900"
-                                    type="text"
-                                    placeholder="e.g. To Do, In Progress"
-                                    required
-                                    autoFocus
-                                    value={newColumnData.name}
-                                    onChange={(e) => setNewColumnData(prev => ({ ...prev, name: e.target.value }))}
-                                />
-                            </label>
-                            <div className="flex items-center gap-2 pt-2">
+            {
+                createColumnOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-3 py-4" role="presentation">
+                        <div className="w-full max-w-sm border border-slate-300 bg-white p-5 shadow-lg" role="dialog" aria-modal="true" aria-labelledby="create-column-title">
+                            <div className="mb-4 flex items-start justify-between gap-3 border-b border-slate-200 pb-2">
+                                <div>
+                                    <h2 id="create-column-title" className="text-lg font-semibold tracking-tight text-slate-900">Add Column</h2>
+                                </div>
                                 <button
-                                    className="border border-slate-900 bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white hover:text-slate-900 w-full cursor-pointer"
-                                    type="submit"
+                                    type="button"
+                                    className="text-slate-400 transition hover:text-slate-900"
+                                    onClick={() => setCreateColumnOpen(false)}
                                 >
-                                    Create Column
+                                    <XIcon size={18} />
                                 </button>
                             </div>
-                        </form>
+                            <form className="flex flex-col gap-4" onSubmit={handleCreateColumn}>
+                                <label className="flex flex-col gap-1.5 text-left text-sm text-slate-700">
+                                    <span className="font-semibold text-xs">Name</span>
+                                    <input
+                                        className="w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900"
+                                        type="text"
+                                        placeholder="e.g. To Do, In Progress"
+                                        required
+                                        autoFocus
+                                        value={newColumnData.name}
+                                        onChange={(e) => setNewColumnData(prev => ({ ...prev, name: e.target.value }))}
+                                    />
+                                </label>
+                                <div className="flex items-center gap-2 pt-2">
+                                    <button
+                                        className="border border-slate-900 bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white hover:text-slate-900 w-full cursor-pointer"
+                                        type="submit"
+                                    >
+                                        Create Column
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* CREATE TASK MODAL */}
-            {createTaskColumnId && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-3 py-4" role="presentation">
-                    <div className="w-full max-w-sm border border-slate-300 bg-white p-5 shadow-lg" role="dialog" aria-modal="true" aria-labelledby="create-task-title">
-                        <div className="mb-4 flex items-start justify-between gap-3 border-b border-slate-200 pb-2">
-                            <div>
-                                <h2 id="create-task-title" className="text-lg font-semibold tracking-tight text-slate-900">Add Task</h2>
-                            </div>
-                            <button
-                                type="button"
-                                className="text-slate-400 transition hover:text-slate-900"
-                                onClick={() => setCreateTaskColumnId(null)}
-                            >
-                                <XIcon size={18} />
-                            </button>
-                        </div>
-                        <form className="flex flex-col gap-4" onSubmit={handleCreateTask}>
-                            <label className="flex flex-col gap-1.5 text-left text-sm text-slate-700">
-                                <span className="font-semibold text-xs">Title</span>
-                                <input
-                                    className="w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900"
-                                    type="text"
-                                    placeholder="Enter task name"
-                                    required
-                                    autoFocus
-                                    value={newTaskData.title}
-                                    onChange={(e) => setNewTaskData(prev => ({ ...prev, title: e.target.value }))}
-                                />
-                            </label>
-                            <label className="flex flex-col gap-1.5 text-left text-sm text-slate-700">
-                                <span className="font-semibold text-xs text-slate-500">Description (Optional)</span>
-                                <textarea
-                                    className="w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900 h-20 resize-none"
-                                    placeholder="Add more details to this task..."
-                                    value={newTaskData.description}
-                                    onChange={(e) => setNewTaskData(prev => ({ ...prev, description: e.target.value }))}
-                                />
-                            </label>
-                            <div className="flex items-center gap-2 pt-2">
+            {
+                createTaskColumnId && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-3 py-4" role="presentation">
+                        <div className="w-full max-w-sm border border-slate-300 bg-white p-5 shadow-lg" role="dialog" aria-modal="true" aria-labelledby="create-task-title">
+                            <div className="mb-4 flex items-start justify-between gap-3 border-b border-slate-200 pb-2">
+                                <div>
+                                    <h2 id="create-task-title" className="text-lg font-semibold tracking-tight text-slate-900">Add Task</h2>
+                                </div>
                                 <button
-                                    className="border border-slate-900 bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white hover:text-slate-900 w-full cursor-pointer"
-                                    type="submit"
+                                    type="button"
+                                    className="text-slate-400 transition hover:text-slate-900"
+                                    onClick={() => setCreateTaskColumnId(null)}
                                 >
-                                    Add Task
+                                    <XIcon size={18} />
                                 </button>
                             </div>
-                        </form>
+                            <form className="flex flex-col gap-4" onSubmit={handleCreateTask}>
+                                <label className="flex flex-col gap-1.5 text-left text-sm text-slate-700">
+                                    <span className="font-semibold text-xs">Title</span>
+                                    <input
+                                        className="w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900"
+                                        type="text"
+                                        placeholder="Enter task name"
+                                        required
+                                        autoFocus
+                                        value={newTaskData.title}
+                                        onChange={(e) => setNewTaskData(prev => ({ ...prev, title: e.target.value }))}
+                                    />
+                                </label>
+                                <label className="flex flex-col gap-1.5 text-left text-sm text-slate-700">
+                                    <span className="font-semibold text-xs text-slate-500">Description (Optional)</span>
+                                    <textarea
+                                        className="w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900 h-20 resize-none"
+                                        placeholder="Add more details to this task..."
+                                        value={newTaskData.description}
+                                        onChange={(e) => setNewTaskData(prev => ({ ...prev, description: e.target.value }))}
+                                    />
+                                </label>
+                                <div className="flex items-center gap-2 pt-2">
+                                    <button
+                                        className="border border-slate-900 bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white hover:text-slate-900 w-full cursor-pointer"
+                                        type="submit"
+                                    >
+                                        Add Task
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
-        </main>
+                )
+            }
+        </main >
     );
 }
 

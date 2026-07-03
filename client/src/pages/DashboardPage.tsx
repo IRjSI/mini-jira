@@ -137,7 +137,7 @@ function DashboardPage() {
                 </div>
             ) : null}
 
-            <section className="grid gap-5 lg:grid-cols-[1fr_2fr]">
+            <section className="grid gap-5 lg:grid-cols-[1fr_2fr] items-start">
                 <div className="border border-slate-300 bg-white p-5">
                     <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-3">
                         <h2 className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">Session</h2>
@@ -169,18 +169,15 @@ function DashboardPage() {
                             <span className="group-hover:rotate-6">+</span>Create
                         </button>
                     </div>
+                    <span className="text-sm font-thin tracking-[0.1em] text-slate-500">Recently Created</span>
                     {orgs.length === 0 ? (
-                        <p className="text-sm text-slate-600">No organizations listed yet.</p>
+                        <p className="text-sm text-slate-600 mt-2">No organizations listed yet.</p>
                     ) : (
-                        <ul className="space-y-2">
+                        <ul className="space-y-2 mt-2 max-h-88 overflow-y-auto pr-1">
                             {orgs.slice(0, 5).map((org) => (
                                 <li className="border border-slate-200 bg-white p-3 flex justify-between items-center" key={org._id}>
-                                    <div
-                                        className="text-sm font-medium text-slate-900"
-                                    >
-                                        <p>
-                                            {org.name}
-                                        </p>
+                                    <div className="text-sm font-medium text-slate-900">
+                                        <p>{org.name}</p>
                                         <div className="mt-1 text-sm text-slate-600">{org.description}</div>
                                     </div>
                                     <Link
@@ -198,7 +195,7 @@ function DashboardPage() {
                                     className="inline-flex w-full justify-center items-center gap-2 border border-slate-300 bg-white px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
                                     to="/organizations"
                                 >
-                                    Load all ({orgs.length} {orgs.length > 1 ? "Orgs" : "Org"})
+                                    Load all
                                     <ArrowUpRightIcon size={14} />
                                 </Link>
                             </li>}
