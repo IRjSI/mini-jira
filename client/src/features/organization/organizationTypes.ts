@@ -3,5 +3,6 @@ export interface Organization {
     name: string;
     description: string;
     owner: string;
+    createdAt: string;
 };
 

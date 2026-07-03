@@ -1,9 +1,8 @@
-export interface Project {
+export interface Board {
     _id: string;
     name: string;
-    description: string;
-    organization: string;
-    organizationName: string;
+    description?: string;
+    project: string;
     createdBy: string;
     createdAt?: string;
     updatedAt?: string;

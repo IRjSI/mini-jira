@@ -17,8 +17,8 @@ export const getOrganizationById = async (id: string) => {
     return response.data;
 };
 
-export const getOrganizationsByOwner = async () => {
-    const response = await api.get("/organizations");
+export const getOrganizationsByOwner = async (limit?: number, offset?: number) => {
+    const response = await api.get(`/organizations?limit=${limit}&offset=${offset}`);
 
     return response.data;
 };

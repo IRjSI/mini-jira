@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
-import { useAppSelector } from "../hooks/redux";
+import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { createOrganization, getOrganizationsByOwner, type CreateOrganizationRequest } from "../api/organization.api";
 import type { Organization } from "../features/organization/organizationTypes";
 import { Link } from "react-router-dom";
 import { ArrowUpRightIcon, XIcon } from "lucide-react";
+import { logoutUser } from "../api/auth.api";
+import { logout } from "../features/auth/authSlice";
 
 function DashboardPage() {
     const auth = useAppSelector((state) => state.auth);
+    const dispatch = useAppDispatch();
 
     const [orgs, setOrgs] = useState<Organization[]>([]);
     const [formData, setFormData] = useState<CreateOrganizationRequest>({ name: "", description: "" });
     const [modalOpen, setModalOpen] = useState(false);
 
     const getOrganizations = async () => {
-        const orgs = await getOrganizationsByOwner(); 
+        const orgs = await getOrganizationsByOwner(5, 0);
 
         setOrgs(orgs.data);
     }
@@ -25,6 +28,16 @@ function DashboardPage() {
     const openModel = (open: boolean) => {
         setModalOpen(open);
     };
+
+    const handleLogout = async () => {
+        try {
+            await logoutUser();
+
+            dispatch(logout())
+        } catch (error) {
+
+        }
+    }
 
     const handleSubmit = async (event: React.SubmitEvent) => {
         event.preventDefault();
@@ -52,7 +65,17 @@ function DashboardPage() {
                     <div>
                         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Dashboard</h1>
                     </div>
-                    <div className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700">{auth.user?.name ?? "Signed in"}</div>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                        <span className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700">
+                            {auth.user?.name ?? "Signed in"}
+                        </span>
+                        <button
+                            className="border border-red-300 bg-red-600/20 px-3 py-2 text-sm text-red-600 cursor-pointer"
+                            onClick={handleLogout}
+                        >
+                            {auth.isAuthenticated ? "Logout" : "Login"}
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -66,11 +89,11 @@ function DashboardPage() {
                             </div>
                             <button
                                 type="button"
-                                className="border border-slate-300 p-2 text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
+                                className="border border-slate-300 p-2 text-slate-700 transition hover:border-slate-900 hover:text-slate-900 group"
                                 onClick={() => openModel(false)}
                                 aria-label="Close"
                             >
-                                <XIcon size={16} />
+                                <XIcon size={16} className="group-hover:rotate-6" />
                             </button>
                         </div>
                         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -140,25 +163,25 @@ function DashboardPage() {
                     <div className="mb-4 border-b border-slate-200 pb-3 flex items-center justify-between">
                         <h2 className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">Organizations</h2>
                         <button
-                            className="text-sm font-semibold uppercase tracking-[0.25em] border border-slate-900 bg-slate-900 px-4 py-2 text-white transition hover:bg-white hover:text-slate-900"
+                            className="text-sm font-semibold uppercase tracking-[0.25em] border border-slate-900 bg-slate-900 px-4 py-2 text-white transition hover:bg-white hover:text-slate-900 group"
                             onClick={() => openModel(!modalOpen)}
                         >
-                            +Create
+                            <span className="group-hover:rotate-6">+</span>Create
                         </button>
                     </div>
                     {orgs.length === 0 ? (
                         <p className="text-sm text-slate-600">No organizations listed yet.</p>
                     ) : (
                         <ul className="space-y-2">
-                            {orgs.map((org) => (
-                                <li className="border border-slate-200 bg-white p-3 flex justify-between items-centers" key={org._id}>
+                            {orgs.slice(0, 5).map((org) => (
+                                <li className="border border-slate-200 bg-white p-3 flex justify-between items-center" key={org._id}>
                                     <div
                                         className="text-sm font-medium text-slate-900"
                                     >
                                         <p>
                                             {org.name}
                                         </p>
-                                    <div className="mt-1 text-sm text-slate-600">{org.description}</div>
+                                        <div className="mt-1 text-sm text-slate-600">{org.description}</div>
                                     </div>
                                     <Link
                                         className="border border-slate-900 bg-slate-900 px-4 py-1 text-xs font-medium uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-slate-900 flex items-center"
@@ -169,6 +192,16 @@ function DashboardPage() {
                                     </Link>
                                 </li>
                             ))}
+
+                            {<li className="pt-2">
+                                <Link
+                                    className="inline-flex w-full justify-center items-center gap-2 border border-slate-300 bg-white px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
+                                    to="/organizations"
+                                >
+                                    Load all ({orgs.length} {orgs.length > 1 ? "Orgs" : "Org"})
+                                    <ArrowUpRightIcon size={14} />
+                                </Link>
+                            </li>}
                         </ul>
                     )}
                 </div>

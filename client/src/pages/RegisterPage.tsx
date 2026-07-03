@@ -9,6 +9,8 @@ function RegisterPage() {
         email: "",
         password: ""
     });
+    const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
@@ -20,16 +22,28 @@ function RegisterPage() {
         }
     }, [isAuthenticated, navigate]);
 
-    const onSubmit = async (e: React.SubmitEvent) => {
+    const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
+        setIsLoading(true);
 
-        await registerUser(formData);
+        try {
+            await registerUser(formData);
 
-        setFormData({
-            name: "",
-            email: "",
-            password: ""
-        });
+            setFormData({
+                name: "",
+                email: "",
+                password: ""
+            });
+
+            navigate("/login");
+        } catch (err: any) {
+            console.error("Registration error:", err);
+            const errorMessage = err.response?.data?.message || err.message || "Failed to register. Please check your credentials.";
+            setError(errorMessage);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -41,42 +55,55 @@ function RegisterPage() {
                     <p className="mt-2 text-sm text-slate-600">Start organizing your projects with a polished workspace.</p>
                 </div>
 
+                {error && (
+                    <div className="mb-4 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <p>{error}</p>
+                    </div>
+                )}
+
                 <form className="flex flex-col gap-4" onSubmit={onSubmit}>
                     <label className="flex flex-col gap-2 text-left text-sm text-slate-700">
                         <span>Name</span>
                         <input
-                            className="w-full border border-slate-300 bg-slate-50 px-3 py-3 text-slate-900 outline-none transition focus:border-slate-900"
+                            className="w-full border border-slate-300 bg-slate-50 px-3 py-3 text-slate-900 outline-none transition focus:border-slate-900 disabled:opacity-50"
                             type="text"
                             placeholder="Your name"
                             value={formData.name}
                             onChange={(e) => setFormData((data) => ({ ...data, name: e.target.value }))}
+                            disabled={isLoading}
                         />
                     </label>
 
                     <label className="flex flex-col gap-2 text-left text-sm text-slate-700">
                         <span>Email</span>
                         <input
-                            className="w-full border border-slate-300 bg-slate-50 px-3 py-3 text-slate-900 outline-none transition focus:border-slate-900"
+                            className="w-full border border-slate-300 bg-slate-50 px-3 py-3 text-slate-900 outline-none transition focus:border-slate-900 disabled:opacity-50"
                             type="email"
                             placeholder="you@example.com"
                             value={formData.email}
                             onChange={(e) => setFormData((data) => ({ ...data, email: e.target.value }))}
+                            disabled={isLoading}
                         />
                     </label>
 
                     <label className="flex flex-col gap-2 text-left text-sm text-slate-700">
                         <span>Password</span>
                         <input
-                            className="w-full border border-slate-300 bg-slate-50 px-3 py-3 text-slate-900 outline-none transition focus:border-slate-900"
+                            className="w-full border border-slate-300 bg-slate-50 px-3 py-3 text-slate-900 outline-none transition focus:border-slate-900 disabled:opacity-50"
                             type="password"
                             placeholder="Choose a strong password"
                             value={formData.password}
                             onChange={(e) => setFormData((data) => ({ ...data, password: e.target.value }))}
+                            disabled={isLoading}
                         />
                     </label>
 
-                    <button className="border border-slate-900 bg-slate-900 px-4 py-3 text-sm font-medium uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-slate-900" type="submit">
-                        Register
+                    <button
+                        className="border border-slate-900 bg-slate-900 px-4 py-3 text-sm font-medium uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                        type="submit"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? "Registering..." : "Register"}
                     </button>
                 </form>
             </section>

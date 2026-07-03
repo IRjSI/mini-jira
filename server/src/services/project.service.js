@@ -68,7 +68,10 @@ const getProject = async (userId, projectId) => {
         throw new ApiError(403, "Unauthorized.");
     }
 
-    return project;
+    return {
+        ...project.toObject(),
+        organizationName: organization.name
+    };
 };
 
 const getProjectsByOrganization = async (userId, organizationId, page, limit) => {

@@ -21,11 +21,11 @@ const createOrganization = async (userId, { name, description = "" }) => {
     return org;
 };
 
-const getOrganizations = async (page, limit) => {
+const getOrganizations = async (userId, page, limit) => {
     const normalizedPage = Number.isFinite(Number(page)) && Number(page) > 0 ? Number(page) : 1;
     const normalizedLimit = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : 10;
 
-    const organizations = await organizationRepository.findAllOrganizations();
+    const organizations = await organizationRepository.findAllOrganizations({ owner: userId });
 
     return organizations.slice((normalizedPage - 1) * normalizedLimit, normalizedPage * normalizedLimit);
 };

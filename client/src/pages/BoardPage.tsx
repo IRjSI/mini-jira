@@ -8,7 +8,7 @@ import Breadcrumbs from "../components/Breadcrumbs";
 import { createBoard, getBoardsByProject, deleteBoard, type CreateBoardRequest } from "../api/board.api";
 import type { Board } from "../features/board/boardTypes";
 
-function ProjectPage() {
+function BoardPage() {
     const user = useAppSelector((state) => (state.auth.user));
     const { id: projectId } = useParams();
     const navigate = useNavigate();
@@ -244,4 +244,4 @@ function ProjectPage() {
     );
 }
 
-export default ProjectPage;
+export default BoardPage;
