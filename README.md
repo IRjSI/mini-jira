@@ -442,6 +442,14 @@ Tests validate complete request-response cycles against the API.
 
 > ![Projects](image-2.png)
 
+### Boards
+
+> ![Boards](image-4.png)
+
+### Columns and Tasks
+
+> ![Columns and tasks](image-3.png)
+
 ---
 
 ## Future Roadmap

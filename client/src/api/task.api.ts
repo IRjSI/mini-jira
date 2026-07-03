@@ -17,7 +17,7 @@ export const createTask = async (columnId: string, data: CreateTaskRequest) => {
     return response.data;
 };
 
-export const getTasksByColumn = async (columnId: string, limit: number = 100) => {
+export const getTasksByColumn = async (columnId: string, limit: number = 200) => {
     const response = await api.get(`/tasks/columns/${columnId}?limit=${limit}`);
     return response.data;
 };
