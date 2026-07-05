@@ -2,7 +2,7 @@ import axios from "axios";
 import { store } from "../app/store";
 
 export const api = axios.create({
-    baseURL: "http://localhost:5000/api/v1",
+    baseURL: "https://mini-jira-no5t.onrender.com/api/v1",
     withCredentials: true,
 });
 
