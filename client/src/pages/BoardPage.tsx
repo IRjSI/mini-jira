@@ -210,7 +210,7 @@ function BoardPage() {
                     <div className="flex flex-wrap gap-2 self-start md:self-center">
                         <button
                             onClick={() => setCreateColumnOpen(true)}
-                            className="border border-slate-900 bg-slate-900 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-white transition hover:bg-white hover:text-slate-900 flex items-center gap-1 cursor-pointer"
+                            className="border border-slate-900 bg-slate-900 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition hover:bg-white hover:text-slate-900 flex items-center gap-1 cursor-pointer"
                         >
                             <PlusIcon size={13} />
                             Add Column
@@ -247,7 +247,6 @@ function BoardPage() {
                             <div className="flex-1 p-2 overflow-y-auto flex flex-col gap-2 relative">
                                 <Droppable
                                     types={["task"]}
-                                    data={column}
                                     onDrop={(data: any) => {
                                         if (data.task) {
                                             try {
@@ -312,7 +311,7 @@ function BoardPage() {
 
                     <button
                         onClick={() => setCreateColumnOpen(true)}
-                        className="w-80 shrink-0 border-2 border-dashed border-slate-300 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-400 transition flex flex-col items-center justify-center p-8 h-[120px] rounded text-slate-500 cursor-pointer"
+                        className="w-80 shrink-0 border-2 border-dashed border-slate-300 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-400 transition flex flex-col items-center justify-center p-8 h-30 rounded text-slate-500 cursor-pointer"
                     >
                         <PlusIcon size={20} className="mb-2 text-slate-400" />
                         <span className="text-sm font-semibold">Add another column</span>
