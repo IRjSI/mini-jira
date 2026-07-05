@@ -1,7 +1,7 @@
 import env from "../config/env.js";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../lib/jwt.js";
 import userRepository from "../repositories/user.repository.js";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 
 const register = async ({ name, email, password }) => {
     const existingUser = await userRepository.findByEmail(email);
