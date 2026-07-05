@@ -1,7 +1,7 @@
 import projectRepository from "../repositories/project.repository.js";
 import organizationRepository from "../repositories/organization.repository.js";
 import boardRepository from "../repositories/board.repository.js";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 import { isAuthorizedForProject } from "../lib/authorizationHelper.js";
 
 const createBoard = async (userId, projectId, { name, description = "" }) => {

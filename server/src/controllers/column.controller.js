@@ -1,7 +1,7 @@
 import columnRepository from "../repositories/column.repository.js";
 import columnService from "../services/column.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
-import ApiResponse from "../utils/ApiResponse.js";
+import ApiResponse from "../utils/apiResponse.js";
 
 const createColumn = asyncHandler(async (req, res) => {
     const column = await columnService.createColumn(

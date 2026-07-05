@@ -1,7 +1,7 @@
 import { isOrganizationOwner } from "../lib/authorizationHelper.js";
 import organizationRepository from "../repositories/organization.repository.js";
 import projectRepository from "../repositories/project.repository.js";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 
 const createProject = async (userId, { name, description = "", organizationId }) => {
     if (!name?.trim()) {

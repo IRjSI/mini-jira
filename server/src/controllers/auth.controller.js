@@ -1,7 +1,7 @@
 import cookieOptions from "../constants/cookies.js";
 import authService from "../services/auth.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
-import ApiResponse from "../utils/ApiResponse.js";
+import ApiResponse from "../utils/apiResponse.js";
 
 const register = asyncHandler(async (req, res) => {
     const result = await authService.register(req.body);

@@ -3,7 +3,7 @@ import boardRepository from "../repositories/board.repository.js";
 import columnRepository from "../repositories/column.repository.js";
 import organizationRepository from "../repositories/organization.repository.js";
 import projectRepository from "../repositories/project.repository.js";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 
 const createColumn = async (userId, boardId, { name }) => {
     if (!name?.trim()) {

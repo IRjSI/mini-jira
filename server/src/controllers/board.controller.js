@@ -1,5 +1,5 @@
 import asyncHandler from "../utils/asyncHandler.js";
-import ApiResponse from "../utils/ApiResponse.js";
+import ApiResponse from "../utils/apiResponse.js";
 import boardService from "../services/board.service.js";
 
 const createBoard = asyncHandler(async (req, res) => {

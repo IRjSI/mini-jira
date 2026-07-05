@@ -5,7 +5,7 @@ import columnRepository from "../repositories/column.repository.js";
 import organizationRepository from "../repositories/organization.repository.js";
 import projectRepository from "../repositories/project.repository.js";
 import taskRepository from "../repositories/task.repository.js";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 
 const getColumnContext = async (userId, columnId) => {
     const column = await columnRepository.findColumnById(columnId);
