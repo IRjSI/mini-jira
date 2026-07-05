@@ -10,7 +10,7 @@ const app = express();
 app.use(cookieParser());
 app.use(
     cors({
-        origin: ["https://hoppscotch.io", "http://localhost:5173"],
+        origin: ["https://hoppscotch.io", "http://localhost:5173", "https://jira-cpm.vercel.app"],
         credentials: true,
     })
 );  
