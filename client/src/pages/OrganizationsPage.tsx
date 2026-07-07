@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
     createOrganization,
@@ -12,29 +12,24 @@ import {
     ArrowUpRightIcon
 } from "lucide-react";
 import Breadcrumbs from "../components/Breadcrumbs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 function OrganizationsPage() {
-    const [organizations, setOrganizations] = useState<Organization[]>([]);
-    const [loading, setLoading] = useState(false);
+    const queryClient = useQueryClient();
 
     const [createOrgOpen, setCreateOrgOpen] = useState(false);
     const [newOrgData, setNewOrgData] = useState({ name: "", description: "" });
 
-    const loadAllOrganizations = async () => {
-        setLoading(true);
-        try {
-            const response = await getOrganizationsByOwner();
-            setOrganizations(response.data);
-        } catch (error) {
-            console.error("Failed to load organizations:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { data: organizations, isLoading } = useQuery<Organization[]>({
+        queryKey: ["organizations"],
+        queryFn: async () => {
+            const data = await getOrganizationsByOwner();
+            return Array.isArray(data) ? data : data.organizations ?? [];
+        },
+        staleTime: 1000 * 60 * 5,
+    });
 
-    useEffect(() => {
-        loadAllOrganizations();
-    }, []);
+    const safeOrgs = organizations ?? [];
 
     const handleCreateOrg = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,7 +38,7 @@ function OrganizationsPage() {
             await createOrganization(newOrgData);
             setNewOrgData({ name: "", description: "" });
             setCreateOrgOpen(false);
-            await loadAllOrganizations();
+            queryClient.invalidateQueries({ queryKey: ["organizations"] });
         } catch (error) {
             console.error("Failed to create organization:", error);
         }
@@ -95,6 +90,7 @@ function OrganizationsPage() {
                                     type="text"
                                     placeholder="Enter name"
                                     required
+                                    autoFocus
                                     value={newOrgData.name}
                                     onChange={(e) => setNewOrgData(prev => ({ ...prev, name: e.target.value }))}
                                 />
@@ -129,16 +125,16 @@ function OrganizationsPage() {
                 </div>
             )}
 
-            {loading ? (
+            {isLoading ? (
                 <div className="py-12 text-center text-sm text-slate-500 font-medium">Fetching organizations...</div>
-            ) : organizations.length === 0 ? (
+            ) : safeOrgs.length === 0 ? (
                 <div className="border border-slate-300 bg-slate-50 p-8 text-center text-slate-600">
                     <p className="text-base font-medium">No organizations listed yet.</p>
                     <p className="mt-1 text-sm text-slate-500">Create your first organization to get started.</p>
                 </div>
             ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {organizations.map((org) => (
+                    {safeOrgs.map((org) => (
                         <div
                             className="border border-slate-300 bg-white p-5 flex flex-col justify-between gap-4 transition duration-200 hover:shadow-md hover:border-slate-500"
                             key={org._id}

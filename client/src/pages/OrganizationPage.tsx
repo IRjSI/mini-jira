@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
     deleteOrganization,
@@ -22,39 +22,39 @@ import {
 } from "lucide-react";
 import { useAppSelector } from "../hooks/redux";
 import Breadcrumbs from "../components/Breadcrumbs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 function OrganizationPage() {
+    const queryClient = useQueryClient()
+
     const user = useAppSelector((state) => (state.auth.user));
     const { id: organizationId } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    const [organization, setOrganization] = useState<Organization | null>(null);
-    const [projects, setProjects] = useState<Project[]>([]);
-
-    const [loading, setLoading] = useState(false);
     const [createProjectOpen, setCreateProjectOpen] = useState(false);
     const [newProjectData, setNewProjectData] = useState({ name: "", description: "" });
 
-    const loadOrganizationDetails = async (id: string) => {
-        setLoading(true);
+    const loadOrganizationDetails = async () => {
         try {
-            const orgResponse = await getOrganizationById(id);
-            setOrganization(orgResponse.data);
-
-            const projResponse = await getProjectsByOrganization(id);
-            setProjects(projResponse.data);
+            const data = await getOrganizationById(organizationId!);
+            return data;
         } catch (error) {
             console.error(error);
-        } finally {
-            setLoading(false);
         }
     };
+    const { data: organization, isLoading: orgLoading, } = useQuery<Organization>({ queryKey: ['organization', organizationId], queryFn: loadOrganizationDetails, enabled: !!organizationId, staleTime: 1000 * 60 * 5, })
 
-    useEffect(() => {
-        if (organizationId) {
-            loadOrganizationDetails(organizationId);
+    const loadProjects = async () => {
+        try {
+            const data = await getProjectsByOrganization(organizationId!);
+            return Array.isArray(data) ? data : data.projects ?? [];
+        } catch (error) {
+            console.error(error);
         }
-    }, [organizationId]);
+    };
+    const { data: projectsData, isLoading: projLoading, } = useQuery<Project[]>({ queryKey: ['projects', organizationId], queryFn: loadProjects, enabled: !!organizationId, staleTime: 1000 * 60 * 5, });
+
+    const projects = projectsData ?? [];
 
     const handleDeleteOrg = async () => {
         if (!organization || !organizationId) return;
@@ -81,8 +81,9 @@ function OrganizationPage() {
             setNewProjectData({ name: "", description: "" });
             setCreateProjectOpen(false);
 
-            const projResponse = await getProjectsByOrganization(organizationId);
-            setProjects(projResponse.data);
+            await queryClient.invalidateQueries({
+                queryKey: ["projects", organizationId]
+            });
         } catch (error) {
             console.error(error);
         }
@@ -92,10 +93,10 @@ function OrganizationPage() {
         if (!window.confirm(`Are you sure you want to delete project "${name}"?`)) return;
         try {
             await deleteProject(projectId);
-            if (organizationId) {
-                const projResponse = await getProjectsByOrganization(organizationId);
-                setProjects(projResponse.data);
-            }
+
+            await queryClient.invalidateQueries({
+                queryKey: ["projects", organizationId]
+            });
         } catch (error) {
             console.error(error);
         }
@@ -112,7 +113,7 @@ function OrganizationPage() {
                     ]}
                 />
 
-                {loading ? (
+                {orgLoading ? (
                     <div className="py-2 text-sm text-slate-500 font-medium">Loading details...</div>
                 ) : (
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -161,7 +162,7 @@ function OrganizationPage() {
                     </h2>
                 </div>
 
-                {loading ? (
+                {projLoading ? (
                     <div className="py-12 text-center text-sm text-slate-500 font-medium">Fetching projects...</div>
                 ) : projects.length === 0 ? (
                     <div className="border border-slate-300 bg-slate-50 p-8 text-center text-slate-600">

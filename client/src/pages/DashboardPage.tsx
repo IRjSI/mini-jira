@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { createOrganization, getOrganizationsByOwner, type CreateOrganizationRequest } from "../api/organization.api";
 import type { Organization } from "../features/organization/organizationTypes";
@@ -6,24 +6,27 @@ import { Link } from "react-router-dom";
 import { ArrowUpRightIcon, XIcon } from "lucide-react";
 import { logoutUser } from "../api/auth.api";
 import { logout } from "../features/auth/authSlice";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 function DashboardPage() {
     const auth = useAppSelector((state) => state.auth);
     const dispatch = useAppDispatch();
+    const queryClient = useQueryClient();
 
-    const [orgs, setOrgs] = useState<Organization[]>([]);
     const [formData, setFormData] = useState<CreateOrganizationRequest>({ name: "", description: "" });
     const [modalOpen, setModalOpen] = useState(false);
 
-    const getOrganizations = async () => {
-        const orgs = await getOrganizationsByOwner(5, 0);
+    const { data: orgsData } = useQuery<Organization[]>({
+        queryKey: ["organizations"],
+        queryFn: async () => {
+            const data = await getOrganizationsByOwner(5, 0);
+            return Array.isArray(data) ? data : data.organizations ?? [];
+        },
+        enabled: !!auth.accessToken,
+        staleTime: 1000 * 60 * 5,
+    });
 
-        setOrgs(orgs.data);
-    }
-
-    useEffect(() => {
-        getOrganizations();
-    }, [auth.accessToken]);
+    const orgs = orgsData ?? [];
 
     const openModel = (open: boolean) => {
         setModalOpen(open);
@@ -32,14 +35,13 @@ function DashboardPage() {
     const handleLogout = async () => {
         try {
             await logoutUser();
-
-            dispatch(logout())
+            dispatch(logout());
         } catch (error) {
-
+            console.error("Failed to logout:", error);
         }
-    }
+    };
 
-    const handleSubmit = async (event: React.SubmitEvent) => {
+    const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
 
         if (!formData.name) {
@@ -54,7 +56,7 @@ function DashboardPage() {
         setFormData({ name: "", description: "" });
         setModalOpen(false);
 
-        await getOrganizations();
+        queryClient.invalidateQueries({ queryKey: ["organizations"] });
     };
 
     return (

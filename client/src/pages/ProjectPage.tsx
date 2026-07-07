@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { deleteProject, getProjectById } from "../api/project.api";
 import type { Project } from "../features/project/projectTypes";
@@ -7,44 +7,50 @@ import { useAppSelector } from "../hooks/redux";
 import Breadcrumbs from "../components/Breadcrumbs";
 import { createBoard, getBoardsByProject, deleteBoard, type CreateBoardRequest } from "../api/board.api";
 import type { Board } from "../features/board/boardTypes";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 function ProjectPage() {
+    const queryClient = useQueryClient();
     const user = useAppSelector((state) => (state.auth.user));
     const { id: projectId } = useParams();
     const navigate = useNavigate();
 
-    const [project, setProject] = useState<Project>();
-    const [boards, setBoards] = useState<Board[]>([]);
     const [createBoardOpen, setCreateBoardOpen] = useState(false);
     const [newBoardData, setNewBoardData] = useState<CreateBoardRequest>({ name: "", description: "" });
 
+    const { data: project, isLoading: projLoading } = useQuery<Project>({
+        queryKey: ["project", projectId],
+        queryFn: async () => {
+            const data = await getProjectById(projectId!);
+            return data;
+        },
+        enabled: !!projectId,
+        staleTime: 1000 * 60 * 5,
+    });
 
-    const loadProject = async () => {
-        try {
-            const response = await getProjectById(projectId!);
-            setProject(response.data);
+    const { data: boards, isLoading: boardsLoading } = useQuery<Board[]>({
+        queryKey: ["boards", projectId],
+        queryFn: async () => {
+            const data = await getBoardsByProject(projectId!);
+            return Array.isArray(data) ? data : data.boards ?? [];
+        },
+        enabled: !!projectId,
+        staleTime: 1000 * 60 * 5,
+    });
 
-            const boardsResponse = await getBoardsByProject(projectId!);
-            setBoards(boardsResponse.data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    const isLoading = projLoading || boardsLoading;
+    const safeBoards = boards ?? [];
 
-    useEffect(() => {
-        loadProject();
-    }, [projectId]);
-
-    const handleDelete = async (projectId: string | undefined) => {
-        if (!projectId || !project) return;
+    const handleDelete = async (id: string | undefined) => {
+        if (!id || !project) return;
 
         if (!window.confirm(`Are you sure you want to delete "${project.name}"? This action cannot be undone.`)) {
             return;
         }
 
         try {
-            await deleteProject(projectId);
-            await loadProject();
+            await deleteProject(id);
+            navigate(`/organization/${project.organization}`);
         } catch (error) {
             console.error("Failed to delete project:", error);
         }
@@ -54,27 +60,22 @@ function ProjectPage() {
         if (!window.confirm(`Are you sure you want to delete board "${name}"?`)) return;
         try {
             await deleteBoard(boardId);
-            if (projectId) {
-                const boardsResponse = await getBoardsByProject(projectId);
-                setBoards(boardsResponse.data);
-            }
+            queryClient.invalidateQueries({ queryKey: ["boards", projectId] });
         } catch (error) {
-            console.error(error);
+            console.error("Failed to delete board:", error);
         }
     };
 
-    const handleCreateBoard = async (e: React.SubmitEvent) => {
+    const handleCreateBoard = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newBoardData.name.trim() || !projectId) return;
         try {
             await createBoard(projectId, newBoardData);
             setNewBoardData({ name: "", description: "" });
             setCreateBoardOpen(false);
-
-            const boardsResponse = await getBoardsByProject(projectId);
-            setBoards(boardsResponse.data);
+            queryClient.invalidateQueries({ queryKey: ["boards", projectId] });
         } catch (error) {
-            console.error(error);
+            console.error("Failed to create board:", error);
         }
     };
 
@@ -90,7 +91,7 @@ function ProjectPage() {
                     ]}
                 />
 
-                {false ? (
+                {isLoading ? (
                     <div className="py-2 text-sm text-slate-500 font-medium">Loading details...</div>
                 ) : (
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -143,16 +144,16 @@ function ProjectPage() {
                     </h2>
                 </div>
 
-                {!boards ? (
+                {boardsLoading ? (
                     <div className="py-12 text-center text-sm text-slate-500 font-medium">Fetching boards...</div>
-                ) : boards.length === 0 ? (
+                ) : safeBoards.length === 0 ? (
                     <div className="border border-slate-300 bg-slate-50 p-8 text-center text-slate-600">
                         <p className="text-base font-medium">No boards created in this project yet.</p>
                         <p className="mt-1 text-sm text-slate-500">Create a board to start organizing tasks.</p>
                     </div>
                 ) : (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {boards.map((board) => (
+                        {safeBoards.map((board) => (
                             <div
                                 className="border border-slate-300 bg-white p-5 flex flex-col justify-between gap-4 transition duration-200 hover:shadow-md hover:border-slate-500"
                                 key={board._id}
@@ -185,11 +186,11 @@ function ProjectPage() {
 
             {createBoardOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-3 py-4" role="presentation">
-                    <div className="w-full max-w-xl border border-slate-300 bg-white p-5 shadow-lg" role="dialog" aria-modal="true" aria-labelledby="create-project-title">
+                    <div className="w-full max-w-xl border border-slate-300 bg-white p-5 shadow-lg" role="dialog" aria-modal="true" aria-labelledby="create-board-title">
                         <div className="mb-4 flex items-start justify-between gap-3 border-b border-slate-200 pb-3">
                             <div>
                                 <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-slate-500">Initiatives</p>
-                                <h2 id="create-project-title" className="text-xl font-semibold tracking-tight text-slate-900">New Board</h2>
+                                <h2 id="create-board-title" className="text-xl font-semibold tracking-tight text-slate-900">New Board</h2>
                             </div>
                             <button
                                 type="button"
@@ -207,6 +208,7 @@ function ProjectPage() {
                                     type="text"
                                     placeholder="Enter name"
                                     required
+                                    autoFocus
                                     value={newBoardData.name}
                                     onChange={(e) => setNewBoardData(prev => ({ ...prev, name: e.target.value }))}
                                 />
